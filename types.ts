@@ -18,7 +18,19 @@ export interface Product {
   image: string;
   stock: number;
   rating: number;
+  numReviews?: number;
   featured?: boolean;
+}
+
+export interface Review {
+  id: string;
+  productId: string;
+  userId: string;
+  userName: string;
+  userPhoto?: string;
+  rating: number;
+  comment: string;
+  createdAt: number;
 }
 
 export interface UserProfile {
