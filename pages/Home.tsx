@@ -4,20 +4,21 @@ import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Product } from '../types';
 import { Link, useNavigate } from 'react-router-dom';
+import { getReadableAddress } from '../services/location';
 
 const Home: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [banners, setBanners] = useState<any[]>([]);
   const [activeBanner, setActiveBanner] = useState(0);
   const [activeCategory, setActiveCategory] = useState('All');
-  const [locationName, setLocationName] = useState('Dhaka, Bangladesh');
+  const [locationName, setLocationName] = useState('Locating...');
   const navigate = useNavigate();
 
   const categories = [
-    { name: 'Mobile', svg: <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" /> },
-    { name: 'Accessories', svg: <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-2.25-1.313M21 7.5v2.25m0-2.25l-2.25 1.313M3 7.5l2.25-1.313M3 7.5v2.25m0-2.25l2.25 1.313m0 0l2.25 1.313m-2.25-1.313v2.25m2.25 1.313l2.25 1.313m-2.25-1.313v2.25" /> },
-    { name: 'Gadgets', svg: <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /> },
-    { name: 'Chargers', svg: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /> }
+    { name: 'Mobile', icon: 'fas fa-mobile-alt' },
+    { name: 'Accessories', icon: 'fas fa-headphones' },
+    { name: 'Gadgets', icon: 'fas fa-plug' },
+    { name: 'Chargers', icon: 'fas fa-bolt' }
   ];
 
   useEffect(() => {
@@ -32,10 +33,11 @@ const Home: React.FC = () => {
     });
 
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setLocationName(`Lat: ${position.coords.latitude.toFixed(2)}, Lng: ${position.coords.longitude.toFixed(2)}`);
-      }, (error) => {
-        console.log("Geolocation error", error);
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const address = await getReadableAddress(position.coords.latitude, position.coords.longitude);
+        setLocationName(address);
+      }, () => {
+        setLocationName('Dhaka, Bangladesh');
       });
     }
 
@@ -54,33 +56,34 @@ const Home: React.FC = () => {
     }
   }, [banners]);
 
+  const filteredProducts = products.filter(p => activeCategory === 'All' || p.category === activeCategory);
+
   return (
-    <div className="p-6 pb-24 animate-fade-in bg-white max-w-md mx-auto">
+    <div className="p-6 pb-24 animate-fade-in bg-white max-w-md mx-auto relative min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <p className="text-[10px] text-f-gray font-bold uppercase tracking-[0.2em]">Current Store</p>
+          <p className="text-[10px] text-f-gray font-bold uppercase tracking-[0.2em]">Active Store</p>
           <button className="flex items-center font-bold text-sm hover:text-gray-600 transition-colors">
-            <svg className="w-4 h-4 mr-1 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <i className="fas fa-map-marker-alt mr-2 text-black text-xs"></i>
             {locationName}
           </button>
         </div>
         <button onClick={() => navigate('/notifications')} className="p-3 bg-f-gray rounded-2xl relative shadow-sm">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
+          <i className="fas fa-bell text-sm"></i>
           <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-black rounded-full border-2 border-f-gray"></span>
         </button>
       </div>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tighter mb-1">Vibe Gadget</h1>
-        <p className="text-xs text-f-gray font-bold uppercase tracking-widest opacity-60">Tech and Mobile Shop</p>
+        <h1 className="text-3xl font-bold tracking-tighter mb-1">VibeGadget</h1>
+        <p className="text-xs text-f-gray font-bold uppercase tracking-widest opacity-60">Premium Tech Ecosystem</p>
       </div>
 
       <div onClick={() => navigate('/search')} className="relative mb-8 cursor-pointer group">
-        <div className="w-full bg-f-gray py-4 pl-12 pr-12 rounded-[24px] text-sm text-gray-400 group-hover:bg-gray-100 transition-colors">Search for products...</div>
-        <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196 7.5 7.5 0 0010.607 10.607z" /></svg>
+        <div className="w-full bg-f-gray py-4 pl-12 pr-12 rounded-[24px] text-sm text-gray-400 group-hover:bg-gray-100 transition-colors">Find your next gadget...</div>
+        <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
       </div>
 
-      {/* Dynamic Banner Carousel - Optimized Visuals */}
       <div className="relative mb-10 group overflow-hidden rounded-[40px] shadow-sm">
         <div className="flex transition-transform duration-700 ease-out" style={{ transform: `translateX(-${activeBanner * 100}%)` }}>
           {banners.length > 0 ? banners.map((banner, i) => (
@@ -89,16 +92,15 @@ const Home: React.FC = () => {
             </div>
           )) : (
             <div className="min-w-full bg-[#1F2029] aspect-[16/9] flex items-center justify-center p-8 text-white">
-               <p className="text-[10px] opacity-40 uppercase font-bold tracking-[0.3em]">Welcome to Vibe Gadget</p>
+               <p className="text-[10px] opacity-40 uppercase font-bold tracking-[0.3em]">Discover VibeGadget</p>
             </div>
           )}
         </div>
         
-        {/* Indicators: Slim pill, blurred, bottom center, white dots */}
         {banners.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center space-x-1.5 bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-sm">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center space-x-2 bg-white/20 backdrop-blur-xl px-4 py-2 rounded-full border border-white/30 shadow-lg z-10">
                 {banners.map((_, i) => (
-                    <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === activeBanner ? 'bg-white scale-125 shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'bg-white/40'}`}></div>
+                    <div key={i} className={`h-1.5 rounded-full transition-all duration-500 ease-in-out ${i === activeBanner ? 'w-8 bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]' : 'w-2 bg-white/40 blur-[0.5px]'}`}></div>
                 ))}
             </div>
         )}
@@ -106,16 +108,14 @@ const Home: React.FC = () => {
 
       <div className="flex justify-between items-center mb-6">
         <h3 className="font-bold text-sm uppercase tracking-widest">Shop Categories</h3>
-        <button className="text-[10px] font-bold text-gray-400 uppercase">View All</button>
+        <button onClick={() => navigate('/all-products')} className="text-[10px] font-bold text-gray-400 uppercase">View All</button>
       </div>
 
       <div className="flex justify-between mb-10 overflow-x-auto no-scrollbar gap-5">
         {categories.map(cat => (
-          <button key={cat.name} className="flex flex-col items-center shrink-0">
+          <button key={cat.name} onClick={() => { setActiveCategory(cat.name); navigate('/all-products', { state: { category: cat.name } }); }} className="flex flex-col items-center shrink-0">
             <div className="w-16 h-16 bg-f-gray rounded-[28px] flex items-center justify-center mb-2 hover:bg-black hover:text-white transition-all shadow-sm">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                {cat.svg}
-              </svg>
+              <i className={`${cat.icon} text-xl`}></i>
             </div>
             <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">{cat.name}</span>
           </button>
@@ -134,21 +134,30 @@ const Home: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-5">
-        {products.filter(p => activeCategory === 'All' || p.category === activeCategory).map(product => (
-          <Link to={`/product/${product.id}`} key={product.id} className="block group">
-            <div className="aspect-[3/4] bg-f-gray rounded-[32px] mb-4 overflow-hidden relative shadow-sm">
-              <img src={product.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={product.name} />
+      <div className="columns-2 gap-4 space-y-4">
+        {filteredProducts.map((product, index) => (
+          <Link 
+            to={`/product/${product.id}`} 
+            key={product.id} 
+            className="block break-inside-avoid animate-fade-in group"
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <div className="bg-f-gray rounded-[32px] mb-3 overflow-hidden relative shadow-sm">
+              <img 
+                src={product.image} 
+                className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500" 
+                alt={product.name} 
+              />
               <button className="absolute top-4 right-4 p-2 bg-white/40 backdrop-blur-md rounded-2xl text-white hover:bg-black transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                <i className="far fa-heart"></i>
               </button>
             </div>
-            <div className="px-1">
-              <h4 className="font-bold text-sm mb-1 truncate">{product.name}</h4>
+            <div className="px-2 pb-2">
+              <h4 className="font-bold text-[13px] leading-tight mb-1 truncate">{product.name}</h4>
               <div className="flex justify-between items-center">
                  <p className="text-xs font-bold text-black opacity-60">৳{product.price}</p>
-                 <div className="flex items-center text-[10px] font-bold bg-f-gray px-2 py-1 rounded-lg">
-                    <svg className="w-3 h-3 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                 <div className="flex items-center text-[9px] font-bold bg-white/50 backdrop-blur px-2 py-0.5 rounded-md border border-black/5">
+                    <i className="fas fa-star text-yellow-400 mr-1 text-[7px]"></i>
                     {product.rating}
                  </div>
               </div>
@@ -156,6 +165,16 @@ const Home: React.FC = () => {
           </Link>
         ))}
       </div>
+
+      {/* Floating AI Assistant Button */}
+      <button 
+        onClick={() => navigate('/ai-assistant')}
+        className="fixed bottom-24 right-6 w-14 h-14 bg-black text-white rounded-[20px] shadow-2xl flex items-center justify-center z-50 animate-bounce active:scale-90 transition-transform hover:shadow-black/40 group overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <i className="fas fa-robot text-xl relative z-10"></i>
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
+      </button>
     </div>
   );
 };
