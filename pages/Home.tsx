@@ -62,7 +62,7 @@ const Home: React.FC = () => {
     <div className="p-4 md:p-10 pb-24 animate-fade-in bg-white container max-w-7xl mx-auto relative min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <p className="text-[10px] text-f-gray font-bold uppercase tracking-[0.2em]">Active Store</p>
+          <p className="text-[10px] text-f-gray font-bold uppercase tracking-[0.2em]">Your Location</p>
           <button className="flex items-center font-bold text-sm hover:text-gray-600 transition-colors">
             <i className="fas fa-map-marker-alt mr-2 text-black text-xs"></i>
             {locationName}
