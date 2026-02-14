@@ -15,7 +15,8 @@ export interface Product {
   price: number;
   description: string;
   category: string;
-  image: string;
+  image: string; // Keep for legacy/main image
+  images?: string[]; // Multiple images support
   stock: number;
   rating: number;
   numReviews?: number;
@@ -31,6 +32,7 @@ export interface Review {
   rating: number;
   comment: string;
   createdAt: number;
+  images?: string[]; // Review images
 }
 
 export interface UserProfile {
@@ -43,7 +45,8 @@ export interface UserProfile {
   role: 'user' | 'admin';
   isBanned: boolean;
   createdAt: number;
-  ipAddress?: string; // Captured for admin view
+  ipAddress?: string;
+  pushEnabled?: boolean;
 }
 
 export interface CartItem {
@@ -61,13 +64,14 @@ export interface Order {
   total: number;
   status: OrderStatus;
   paymentMethod: string;
+  paymentOption?: 'Full Payment' | 'Delivery Fee Only';
+  transactionId?: string;
   shippingAddress: string;
   contactNumber: string;
   createdAt: number;
   customerName: string;
-  steadfastId?: string; // ID returned by Steadfast API
+  steadfastId?: string;
   steadfastStatus?: string;
-  paymentOption?: string;
 }
 
 export interface Notification {
