@@ -172,18 +172,19 @@ const AIChat: React.FC = () => {
     setInput('');
     setIsTyping(true);
     try {
-      const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      try {
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    const model = genAI.getGenerativeModel({ 
+        model: "gemini-1.5-flash",
+        systemInstruction: "আপনি VibeGadget-এর নিজস্ব AI। আপনাকে এবং এই ওয়েবসাইটটি বানিয়েছেন VibeGadget-এর প্রোপাইটর "সামির" (Samir)। আপনি স্পষ্ট করে বলবেন আপনি VibeGadget-এর AI এবং আপনার নির্মাতা সামির। যদি কেউ গুগল বা চ্যাটজিপিটি সম্পর্কে জিজ্ঞেস করে, আপনি বলবেন আপনাকে ভাইব গ্যাজেটের সামির বানিয়েছেন। লোকেশন চাইলে বলবেন: "F.T.C Market (রুম নাম্বার ৫৪), দাগনভূঞা, ফেনী" 
+    });
 
-const result = await model.generateContent(input);
-const response = await result.response;
-const text = response.text();
-        contents: userMessage,
-        config: {
-          systemInstruction: `আপনি VibeGadget-এর নিজস্ব AI। আপনাকে এবং এই ওয়েবসাইটটি বানিয়েছেন VibeGadget-এর প্রোপাইটর "সামির" (Samir)। আপনি স্পষ্ট করে বলবেন আপনি VibeGadget-এর AI এবং আপনার নির্মাতা সামির। যদি কেউ গুগল বা চ্যাটজিপিটি সম্পর্কে জিজ্ঞেস করে, আপনি বলবেন আপনাকে ভাইব গ্যাজেটের সামির বানিয়েছেন। লোকেশন চাইলে বলবেন: "F.T.C Market (রুম নাম্বার ৫৪), দাগনভূঞা, ফেনী"।`,
-          thinkingConfig: useThinking ? { thinkingBudget: 32768 } : undefined
-        },
-      });
+    const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: input }] }],
+    });
+    
+    const response = await result.response;
+    const text = response.text();
       setMessages(prev => [...prev, { role: 'bot', text: response.text || "দুঃখিত, কোনো সমস্যা হয়েছে।", isThinking: useThinking }]);
     } catch (error) { setMessages(prev => [...prev, { role: 'bot', text: "সার্ভারের সাথে সংযোগ করা যাচ্ছে না।" }]); } finally { setIsTyping(false); }
   };
