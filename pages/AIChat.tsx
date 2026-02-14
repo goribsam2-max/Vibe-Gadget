@@ -172,7 +172,7 @@ const AIChat: React.FC = () => {
     setInput('');
     setIsTyping(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: API_KEY });
+      const ai = const genAI = new GoogleGenerativeAI(API_KEY);
       const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: userMessage,
