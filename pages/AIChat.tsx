@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GoogleGenAI, LiveServerMessage, Modality } from "@google/genai";
+import { GoogleGenerativeAI, LiveServerMessage, Modality } from "@google/generative-ai";
 import { useNotify } from '../components/Notifications';
 
 interface GenAIBlob { data: string; mimeType: string; }
