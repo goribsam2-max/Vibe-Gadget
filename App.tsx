@@ -89,7 +89,6 @@ const AppContent: React.FC = () => {
     '/verify', 
     '/location', 
     '/complete-profile',
-    '/ai-assistant'
   ].includes(location.pathname) || 
   location.pathname.startsWith('/admin') || 
   location.pathname.startsWith('/product/') ||
@@ -124,7 +123,6 @@ const AppContent: React.FC = () => {
         <Route path="/track-order/:id" element={<TrackOrder />} />
         <Route path="/e-receipt/:id" element={<EReceipt />} />
         <Route path="/leave-review" element={<LeaveReview />} />
-        <Route path="/ai-assistant" element={<AIChat />} />
         
         <Route path="/settings" element={<Settings />} />
         <Route path="/settings/password" element={<PasswordManager />} />
