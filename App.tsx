@@ -39,7 +39,6 @@ import HelpCenter from './pages/HelpCenter';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PasswordManager from './pages/PasswordManager';
 import AllProducts from './pages/AllProducts';
-import AIChat from './pages/AIChat';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
