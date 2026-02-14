@@ -5,32 +5,39 @@ const CHAT_ID = "5494141897";
 export const sendOrderToTelegram = async (orderData: any) => {
   try {
     const itemsList = orderData.items
-      .map((item: any) => `• ${item.name} (x${item.quantity}) - ৳${item.priceAtPurchase}`)
-      .join("\n");
+      .map((item: any) => `• ${item.name}\n  [Qty: ${item.quantity} | Price: ৳${item.priceAtPurchase}]`)
+      .join("\n\n");
+
+    const paymentDetails = `
+<b>💳 PAYMENT CONFIGURATION</b>
+<b>Method:</b> ${orderData.paymentMethod}
+<b>Type:</b> ${orderData.paymentOption || 'N/A (COD)'}
+<b>TrxID:</b> <code>${orderData.transactionId || 'None'}</code>
+`;
 
     const message = `
-<b>🚀 NEW ORDER RECEIVED!</b>
+<b>🚀 NEW VIBEGADGET ORDER</b>
 ━━━━━━━━━━━━━━━━━━
 <b>👤 CUSTOMER DETAILS</b>
 <b>Name:</b> ${orderData.customerName}
 <b>Phone:</b> <code>${orderData.contactNumber}</code>
 <b>Address:</b> <i>${orderData.shippingAddress}</i>
 
-<b>📦 INVENTORY MANIFEST</b>
+<b>📦 PRODUCT MANIFEST (A-Z)</b>
 ${itemsList}
 
-<b>💰 PAYMENT INFO</b>
-<b>Total Amount:</b> ৳${orderData.total}
-<b>Paid Now:</b> ৳${orderData.paidAmount}
-<b>Method:</b> ${orderData.paymentMethod}
-<b>Option:</b> ${orderData.paymentOption}
-
-<b>🚚 LOGISTICS</b>
-<b>Provider:</b> Steadfast Courier
-<b>Status:</b> ${orderData.status}
-<b>Timestamp:</b> ${new Date(orderData.createdAt).toLocaleString()}
 ━━━━━━━━━━━━━━━━━━
-<code>REF: ${orderData.id ? orderData.id.toUpperCase() : 'NEW_ORDER'}</code>
+${paymentDetails}
+<b>💰 FINANCIAL SUMMARY</b>
+<b>Grand Total:</b> ৳${orderData.total}
+
+<b>📅 SYSTEM LOG</b>
+<b>Logistics:</b> Steadfast Courier
+<b>Status:</b> ${orderData.status}
+<b>Time:</b> ${new Date(orderData.createdAt).toLocaleString('en-BD')}
+━━━━━━━━━━━━━━━━━━
+<b>🆔 ORDER REF:</b>
+<code>${orderData.id ? orderData.id.toUpperCase() : 'NEW_ENTRY'}</code>
 `;
 
     const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -47,7 +54,7 @@ ${itemsList}
 
     return await response.json();
   } catch (error) {
-    console.error("Telegram Notification Error:", error);
+    console.error("Telegram Notification Gateway Error:", error);
     return null;
   }
 };
