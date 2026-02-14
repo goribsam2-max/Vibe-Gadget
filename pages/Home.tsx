@@ -165,16 +165,6 @@ const Home: React.FC = () => {
           </Link>
         ))}
       </div>
-
-      <button 
-        onClick={() => navigate('/ai-assistant')}
-        className="fixed bottom-28 md:bottom-10 right-8 md:right-12 w-16 h-16 bg-black text-white rounded-[24px] shadow-2xl flex items-center justify-center z-50 animate-bounce active:scale-90 transition-transform hover:shadow-black/40 group overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <i className="fas fa-robot text-2xl relative z-10"></i>
-        <div className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full border-2 border-white"></div>
-      </button>
-    </div>
   );
 };
 
