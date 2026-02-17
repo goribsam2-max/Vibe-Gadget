@@ -2,6 +2,7 @@
 export enum OrderStatus {
   PENDING = 'Pending',
   PROCESSING = 'Processing',
+  HOLD = 'On Hold',
   PACKAGING = 'Packaging',
   SHIPPED = 'Shipped',
   ON_THE_WAY = 'On the Way',
@@ -15,24 +16,12 @@ export interface Product {
   price: number;
   description: string;
   category: string;
-  image: string; // Keep for legacy/main image
-  images?: string[]; // Multiple images support
+  image: string; 
+  images?: string[]; 
   stock: number;
   rating: number;
   numReviews?: number;
   featured?: boolean;
-}
-
-export interface Review {
-  id: string;
-  productId: string;
-  userId: string;
-  userName: string;
-  userPhoto?: string;
-  rating: number;
-  comment: string;
-  createdAt: number;
-  images?: string[]; // Review images
 }
 
 export interface UserProfile {
@@ -45,8 +34,14 @@ export interface UserProfile {
   role: 'user' | 'admin';
   isBanned: boolean;
   createdAt: number;
+  registrationDate: number;
   ipAddress?: string;
-  pushEnabled?: boolean;
+  lastActive?: number;
+  isp?: string;
+  timeZone?: string;
+  osName?: string;
+  browserName?: string;
+  locationName?: string;
 }
 
 export interface CartItem {
@@ -64,22 +59,42 @@ export interface Order {
   total: number;
   status: OrderStatus;
   paymentMethod: string;
-  paymentOption?: 'Full Payment' | 'Delivery Fee Only';
+  paymentOption?: string; // 'Full Payment' or 'Delivery Fee'
   transactionId?: string;
   shippingAddress: string;
   contactNumber: string;
   createdAt: number;
   customerName: string;
-  steadfastId?: string;
-  steadfastStatus?: string;
+  trackingId?: string;
+  ipAddress?: string; // Captured at checkout
+}
+
+export interface Banner {
+  id: string;
+  imageUrl: string;
+  title: string;
+  description: string;
+  link?: string;
+  createdAt: number;
+}
+
+export interface Review {
+  id: string;
+  productId: string;
+  userId: string;
+  userName: string;
+  userPhoto?: string;
+  rating: number;
+  comment: string;
+  images?: string[];
+  createdAt: number;
 }
 
 export interface Notification {
   id: string;
+  userId: string;
   title: string;
   message: string;
   image?: string;
-  userId: string | 'all';
-  read: boolean;
   createdAt: number;
 }

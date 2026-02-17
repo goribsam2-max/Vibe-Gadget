@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VibeGadget | Premium Tech Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome 5 Pro -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.15.4/css/all.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#000000">
@@ -17,59 +17,64 @@
         await OneSignal.init({
           appId: "29c39d8a-7be8-404a-8a33-5616086735fa",
           safari_web_id: "web.onesignal.auto.18f55e14-9585-4855-a0ee-ea6515e10e22",
-          notifyButton: {
-            enable: false, // Custom popup handles this
-          },
+          notifyButton: { enable: false },
         });
       });
     </script>
     <style>
+        :root {
+            --zinc-50: #fafafa;
+            --zinc-100: #f4f4f5;
+            --zinc-200: #e4e4e7;
+            --zinc-900: #09090b;
+        }
         body {
             font-family: 'Inter', sans-serif;
             background-color: #FFFFFF;
-            color: #000000;
+            color: var(--zinc-900);
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
         }
-        .rounded-3xl { border-radius: 24px; }
-        .rounded-4xl { border-radius: 32px; }
-        .bg-f-gray { background-color: #F3F3F3; }
-        .text-f-gray { color: #7D7D7D; }
-        .border-f-light { border-color: #E0E0E0; }
-        
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .glass-dark {
+            background: rgba(9, 9, 11, 0.88);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        ::-webkit-scrollbar { width: 6px; background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--zinc-200); border-radius: 10px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .modal-center {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-        }
-
         .btn-primary {
-            background-color: #000000;
+            background-color: var(--zinc-900);
             color: #FFFFFF;
-            border-radius: 9999px;
-            padding: 16px;
-            font-weight: 600;
-            text-align: center;
-            transition: all 0.2s;
+            border-radius: 20px;
+            padding: 18px;
+            font-weight: 800;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+        .btn-primary:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn-primary:active { transform: scale(0.96); }
         
-        .btn-secondary {
-            background-color: #FFFFFF;
-            color: #000000;
-            border: 1px solid #E0E0E0;
-            border-radius: 9999px;
-            padding: 16px;
-            font-weight: 600;
-            text-align: center;
+        /* Smooth transitions */
+        .page-transition-enter { opacity: 0; transform: translateY(10px); }
+        .page-transition-enter-active { opacity: 1; transform: translateY(0); transition: all 400ms; }
+        .page-transition-exit { opacity: 1; transform: translateY(0); }
+        .page-transition-exit-active { opacity: 0; transform: translateY(-10px); transition: all 400ms; }
+
+        @media (min-width: 1024px) {
+            h1 { font-size: 5rem !important; }
         }
     </style>
 <script type="importmap">
@@ -80,7 +85,8 @@
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
     "react": "https://esm.sh/react@^19.2.4",
     "react/": "https://esm.sh/react@^19.2.4/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.40.0"
+    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
+    "framer-motion": "https://esm.sh/framer-motion@^11.18.0"
   }
 }
 </script>
