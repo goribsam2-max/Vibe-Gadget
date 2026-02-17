@@ -1,5 +1,6 @@
 
 import React, { useState, createContext, useContext } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -34,7 +35,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4000);
+    }, 2500);
   };
 
   const confirm = (options: ConfirmOptions) => {
@@ -45,49 +46,52 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <ToastContext.Provider value={{ notify, confirm }}>
       {children}
       
-      {/* Toasts */}
-      <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-[90%] md:max-w-md">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={`px-6 py-4 rounded-2xl shadow-2xl flex items-center justify-between min-w-[300px] animate-fade-in 
-              ${toast.type === 'success' ? 'bg-black border border-white/20' : toast.type === 'error' ? 'bg-red-600' : 'bg-[#1F2029]'} 
-              text-white transition-all`}
-          >
-            <p className="font-bold text-sm">{toast.message}</p>
-            <button onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))} className="ml-4 opacity-70 hover:opacity-100">
-              ✕
-            </button>
-          </div>
-        ))}
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none w-fit max-w-[240px]">
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <motion.div
+              key={toast.id}
+              initial={{ opacity: 0, x: 20, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8, x: 10 }}
+              className={`pointer-events-auto px-4 py-2.5 rounded-xl shadow-lg flex items-center space-x-2 border backdrop-blur-md ${
+                toast.type === 'success' ? 'bg-white/95 border-green-100 text-green-700' : 
+                toast.type === 'error' ? 'bg-white/95 border-red-100 text-red-700' : 
+                'bg-white/95 border-zinc-100 text-zinc-800'
+              }`}
+            >
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                toast.type === 'success' ? 'bg-green-50' : 
+                toast.type === 'error' ? 'bg-red-50' : 
+                'bg-zinc-50'
+              }`}>
+                <i className={`fas ${toast.type === 'success' ? 'fa-check' : toast.type === 'error' ? 'fa-exclamation' : 'fa-info'} text-[7px]`}></i>
+              </div>
+              <p className="font-bold text-[10px] tracking-tight leading-tight">{toast.message}</p>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
-      {/* Confirmation Modal */}
-      {confirmModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-8 animate-fade-in">
-          <div className="bg-white rounded-[40px] p-8 w-full max-w-sm shadow-2xl border border-white/20 text-center">
-            <div className="w-16 h-16 bg-f-gray rounded-3xl flex items-center justify-center mx-auto mb-6">
-               <i className="fas fa-question text-2xl text-black"></i>
-            </div>
-            <h3 className="text-xl font-bold mb-2 tracking-tight">{confirmModal.title}</h3>
-            <p className="text-[11px] text-f-gray font-medium leading-relaxed mb-8 px-2">{confirmModal.message}</p>
-            <div className="space-y-3">
-              <button 
-                onClick={() => { confirmModal.onConfirm(); setConfirmModal(null); }}
-                className="w-full py-4 bg-black text-white rounded-2xl font-bold text-xs uppercase tracking-widest active:scale-[0.98] shadow-xl shadow-black/10"
-              >
-                {confirmModal.confirmText || 'Confirm'}
-              </button>
-              <button 
-                onClick={() => { if(confirmModal.onCancel) confirmModal.onCancel(); setConfirmModal(null); }}
-                className="w-full py-4 text-gray-400 font-bold text-[10px] uppercase tracking-widest active:scale-[0.98]"
-              >
-                {confirmModal.cancelText || 'Cancel'}
-              </button>
-            </div>
+      <AnimatePresence>
+        {confirmModal && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setConfirmModal(null)} />
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="bg-white rounded-[2rem] p-8 w-full max-w-sm shadow-2xl relative z-10 text-center border border-zinc-100">
+              <h3 className="text-xl font-black mb-2 tracking-tight">{confirmModal.title}</h3>
+              <p className="text-xs text-zinc-500 font-medium mb-8 leading-relaxed">{confirmModal.message}</p>
+              <div className="flex flex-col gap-2">
+                <button onClick={() => { confirmModal.onConfirm(); setConfirmModal(null); }} className="w-full py-4 bg-black text-white rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg">
+                  {confirmModal.confirmText || 'Confirm'}
+                </button>
+                <button onClick={() => setConfirmModal(null)} className="w-full py-4 text-zinc-400 font-bold text-[10px] uppercase tracking-widest">
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </ToastContext.Provider>
   );
 };
