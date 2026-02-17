@@ -9,34 +9,35 @@ export const sendOrderToTelegram = async (orderData: any) => {
       .join("\n\n");
 
     const paymentDetails = `
-<b>💳 PAYMENT CONFIGURATION</b>
+<b>💳 PAYMENT DETAILS</b>
 <b>Method:</b> ${orderData.paymentMethod}
-<b>Type:</b> ${orderData.paymentOption || 'N/A (COD)'}
+<b>Option:</b> ${orderData.paymentOption || 'N/A'}
 <b>TrxID:</b> <code>${orderData.transactionId || 'None'}</code>
 `;
 
     const message = `
-<b>🚀 NEW VIBEGADGET ORDER</b>
+<b>🛍️ NEW ORDER CONFIRMED</b>
 ━━━━━━━━━━━━━━━━━━
-<b>👤 CUSTOMER DETAILS</b>
+<b>👤 CUSTOMER PROFILE</b>
 <b>Name:</b> ${orderData.customerName}
 <b>Phone:</b> <code>${orderData.contactNumber}</code>
 <b>Address:</b> <i>${orderData.shippingAddress}</i>
+<b>Customer IP:</b> <code>${orderData.ipAddress || 'Not Captured'}</code>
 
-<b>📦 PRODUCT MANIFEST (A-Z)</b>
+<b>📦 ORDERED ITEMS</b>
 ${itemsList}
 
 ━━━━━━━━━━━━━━━━━━
 ${paymentDetails}
-<b>💰 FINANCIAL SUMMARY</b>
-<b>Grand Total:</b> ৳${orderData.total}
+<b>💰 BILLING SUMMARY</b>
+<b>Total Amount:</b> ৳${orderData.total}
 
-<b>📅 SYSTEM LOG</b>
-<b>Logistics:</b> Steadfast Courier
-<b>Status:</b> ${orderData.status}
-<b>Time:</b> ${new Date(orderData.createdAt).toLocaleString('en-BD')}
+<b>📅 LOGISTICS INFO</b>
+<b>Courier Service:</b> Steadfast Courier
+<b>Order Status:</b> ${orderData.status}
+<b>Order Date:</b> ${new Date(orderData.createdAt).toLocaleString('en-BD')}
 ━━━━━━━━━━━━━━━━━━
-<b>🆔 ORDER REF:</b>
+<b>🆔 INVOICE ID:</b>
 <code>${orderData.id ? orderData.id.toUpperCase() : 'NEW_ENTRY'}</code>
 `;
 

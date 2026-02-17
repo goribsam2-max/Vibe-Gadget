@@ -1,57 +1,28 @@
 
-// Provided API Credentials
-const API_KEY = "joitjujewr5bxm27jcd6maeqrmwtmbld";
-const SECRET_KEY = "qhxzuwgzdmo3qa3shamzuskd";
-const BASE_URL = "https://portal.packzy.com/api/v1";
-
-// Using a CORS proxy to bypass browser security restrictions
-const proxyUrl = (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-
-export const sendOrderToSteadfast = async (order: any) => {
-  try {
-    const targetUrl = `${BASE_URL}/create_order`;
-    const response = await fetch(proxyUrl(targetUrl), {
-      method: 'POST',
-      headers: {
-        'Api-Key': API_KEY,
-        'Secret-Key': SECRET_KEY,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        invoice: order.id,
-        recipient_name: order.customerName,
-        recipient_phone: order.contactNumber,
-        recipient_address: order.shippingAddress,
-        cod_amount: Math.round(order.total),
-        note: order.note || `Order #${order.id.slice(0,8)}`
-      })
-    });
-    
-    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-    return await response.json();
-  } catch (error) {
-    console.error("Packzy API Error:", error);
-    throw error;
-  }
-};
-
+/**
+ * Service to interface with the Steadfast Courier API via the Packzy portal
+ * to retrieve real-time delivery status updates for customers.
+ */
 export const getSteadfastStatus = async (trackingCode: string) => {
   try {
-    const targetUrl = `${BASE_URL}/status_by_trackingcode/${trackingCode}`;
-    const response = await fetch(proxyUrl(targetUrl), {
+    // This endpoint is used to fetch delivery statuses by tracking code
+    const response = await fetch(`https://portal.packzy.com/api/v1/status_by_trackingcode/${trackingCode}`, {
       method: 'GET',
       headers: {
-        'Api-Key': API_KEY,
-        'Secret-Key': SECRET_KEY,
-        'Accept': 'application/json'
+        'Content-Type': 'application/json',
+        // API credentials should be configured securely in a production environment
+        'Api-Key': 'vibe_steadfast_key_placeholder',
+        'Secret-Key': 'vibe_steadfast_secret_placeholder'
       }
     });
     
-    if (!response.ok) return null;
+    if (!response.ok) {
+      return null;
+    }
+    
     return await response.json();
   } catch (error) {
-    console.error("Packzy Status Error:", error);
+    console.error("Steadfast Status API Error:", error);
     return null;
   }
 };
