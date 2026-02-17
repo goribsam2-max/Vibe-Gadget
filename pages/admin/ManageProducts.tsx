@@ -6,6 +6,7 @@ import { db } from '../../firebase';
 import { uploadToImgbb } from '../../services/imgbb';
 import { useNotify, useConfirm } from '../../components/Notifications';
 import { Product } from '../../types';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const ManageProducts: React.FC = () => {
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ const ManageProducts: React.FC = () => {
       imageFiles: []
     });
     setIsAdding(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,19 +74,20 @@ const ManageProducts: React.FC = () => {
 
       if (editingId) {
         await updateDoc(doc(db, 'products', editingId), productData);
-        notify("Product updated!", "success");
+        notify("Product updated successfully", "success");
       } else {
         productData.rating = 5;
         productData.numReviews = 0;
         await addDoc(collection(db, 'products'), productData);
-        notify("Product published!", "success");
+        notify("Product added to catalog", "success");
       }
 
       setIsAdding(false);
       setEditingId(null);
+      setFormData({ name: '', price: 0, description: '', category: 'Mobile', stock: 10, imageFiles: [] });
       fetchProducts();
-    } catch (err) {
-      notify("Failed to save product", "error");
+    } catch (err: any) {
+      notify(err.message || "Failed to save product", "error");
     } finally {
       setLoading(false);
     }
@@ -93,127 +96,146 @@ const ManageProducts: React.FC = () => {
   const handleDelete = (id: string) => {
     confirm({
       title: "Delete Product?",
-      message: "This will permanently remove the item from the catalog.",
+      message: "This product will be permanently removed from the store.",
       onConfirm: async () => {
         await deleteDoc(doc(db, 'products', id));
-        notify("Item deleted", "info");
+        notify("Product deleted", "info");
         fetchProducts();
       }
     });
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10 bg-white min-h-screen">
-      <div className="flex justify-between items-center mb-10">
+    <div className="max-w-[1440px] mx-auto px-6 md:px-12 py-10 pb-32 min-h-screen bg-[#FDFDFD]">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
         <div className="flex items-center space-x-6">
-           <button onClick={() => navigate(-1)} className="p-3 bg-f-gray rounded-2xl active:scale-90 transition-all shadow-sm">
-             <i className="fas fa-chevron-left text-sm"></i>
+           <button onClick={() => navigate('/admin')} className="p-4 bg-zinc-900 text-white rounded-2xl shadow-xl active:scale-90 transition-all">
+             <i className="fas fa-chevron-left text-xs"></i>
            </button>
-           <h1 className="text-3xl font-bold tracking-tight">Catalog Hub</h1>
+           <div>
+              <h1 className="text-3xl md:text-5xl font-black tracking-tighter">Products.</h1>
+              <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest mt-1">Catalog Management</p>
+           </div>
         </div>
         <button 
-          onClick={() => { setIsAdding(!isAdding); setEditingId(null); }}
-          className="bg-black text-white px-8 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-[2px] shadow-xl shadow-black/20 active:scale-95 transition-all"
+          onClick={() => { setIsAdding(!isAdding); setEditingId(null); setFormData({ name: '', price: 0, description: '', category: 'Mobile', stock: 10, imageFiles: [] }); }}
+          className={`px-8 py-5 rounded-full font-black uppercase text-[10px] tracking-[0.2em] shadow-2xl transition-all active:scale-95 ${isAdding ? 'bg-red-500 text-white' : 'bg-black text-white'}`}
         >
-          {isAdding ? "Cancel Entry" : "New Item +"}
+          {isAdding ? "Cancel Action" : "Add New Product"}
         </button>
       </div>
 
-      {isAdding && (
-        <form onSubmit={handleSubmit} className="bg-f-gray p-10 rounded-[48px] shadow-sm mb-12 space-y-8 max-w-3xl mx-auto border border-f-light animate-fade-in">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-2">Item Name</label>
-              <input 
-                type="text" className="w-full p-5 bg-white rounded-3xl outline-none focus:ring-1 focus:ring-black shadow-inner font-medium" required
-                value={formData.name}
-                onChange={e => setFormData({...formData, name: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-2">Classification</label>
-              <select 
-                className="w-full p-5 bg-white rounded-3xl outline-none focus:ring-1 focus:ring-black shadow-inner font-bold uppercase text-xs"
-                value={formData.category}
-                onChange={e => setFormData({...formData, category: e.target.value})}
-              >
-                <option>Mobile</option>
-                <option>Accessories</option>
-                <option>Gadgets</option>
-                <option>Chargers</option>
-              </select>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-8">
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-2">Pricing (৳)</label>
-              <input 
-                type="number" className="w-full p-5 bg-white rounded-3xl outline-none focus:ring-1 focus:ring-black shadow-inner font-bold" required
-                value={formData.price}
-                onChange={e => setFormData({...formData, price: Number(e.target.value)})}
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-2">Inventory Stock</label>
-              <input 
-                type="number" className="w-full p-5 bg-white rounded-3xl outline-none focus:ring-1 focus:ring-black shadow-inner font-bold" required
-                value={formData.stock}
-                onChange={e => setFormData({...formData, stock: Number(e.target.value)})}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-2">Visual Content (Multiple)</label>
-            <input 
-              type="file" className="w-full p-5 bg-white rounded-3xl outline-none text-xs shadow-inner" accept="image/*" multiple
-              onChange={e => {
-                if (e.target.files) {
-                  setFormData({...formData, imageFiles: Array.from(e.target.files)});
-                }
-              }}
-            />
-            {editingId && <p className="text-[9px] text-f-gray mt-3 uppercase font-bold tracking-widest opacity-40">* Leave empty to retain current visual data</p>}
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-2">Product Narrative</label>
-            <textarea 
-              className="w-full p-6 bg-white rounded-[32px] h-40 outline-none focus:ring-1 focus:ring-black shadow-inner leading-relaxed text-sm"
-              value={formData.description}
-              onChange={e => setFormData({...formData, description: e.target.value})}
-            />
-          </div>
-
-          <button 
-            disabled={loading}
-            className="w-full py-6 bg-black text-white rounded-[28px] font-bold uppercase tracking-[3px] text-xs disabled:opacity-50 shadow-2xl shadow-black/20 active:scale-95 transition-transform"
+      <AnimatePresence>
+        {isAdding && (
+          <motion.form 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            onSubmit={handleSubmit} 
+            className="bg-white p-10 md:p-14 rounded-[3rem] shadow-sm mb-16 space-y-10 max-w-4xl mx-auto border border-zinc-100"
           >
-            {loading ? "Processing Data Hub..." : (editingId ? "Update System Entry" : "Establish New Entry")}
-          </button>
-        </form>
-      )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div>
+                <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4 px-1">Product Name</label>
+                <input 
+                  type="text" className="w-full p-5 bg-zinc-50 rounded-[1.5rem] outline-none border border-transparent focus:border-black transition-all font-bold shadow-inner" required
+                  value={formData.name}
+                  onChange={e => setFormData({...formData, name: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4 px-1">Category</label>
+                <select 
+                  className="w-full p-5 bg-zinc-50 rounded-[1.5rem] outline-none border border-transparent focus:border-black transition-all font-bold shadow-inner cursor-pointer"
+                  value={formData.category}
+                  onChange={e => setFormData({...formData, category: e.target.value})}
+                >
+                  <option>Mobile</option>
+                  <option>Accessories</option>
+                  <option>Gadgets</option>
+                  <option>Chargers</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-10">
+              <div>
+                <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4 px-1">Price (৳)</label>
+                <input 
+                  type="number" className="w-full p-5 bg-zinc-50 rounded-[1.5rem] outline-none border border-transparent focus:border-black transition-all font-black shadow-inner" required
+                  value={formData.price}
+                  onChange={e => setFormData({...formData, price: Number(e.target.value)})}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4 px-1">Stock Amount</label>
+                <input 
+                  type="number" className="w-full p-5 bg-zinc-50 rounded-[1.5rem] outline-none border border-transparent focus:border-black transition-all font-black shadow-inner" required
+                  value={formData.stock}
+                  onChange={e => setFormData({...formData, stock: Number(e.target.value)})}
+                />
+              </div>
+            </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
+            <div>
+              <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4 px-1">Upload Images (One or More)</label>
+              <input 
+                type="file" className="w-full p-6 bg-zinc-50 rounded-[2rem] outline-none text-[11px] font-black uppercase shadow-inner border border-dashed border-zinc-200 cursor-pointer" accept="image/*" multiple
+                onChange={e => { if (e.target.files) setFormData({...formData, imageFiles: Array.from(e.target.files)}); }}
+              />
+              {editingId && <p className="text-[10px] text-zinc-300 mt-4 font-bold px-1">Leave empty to keep existing images.</p>}
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4 px-1">Product Description</label>
+              <textarea 
+                className="w-full p-8 bg-zinc-50 rounded-[2rem] h-44 outline-none border border-transparent focus:border-black transition-all shadow-inner leading-relaxed text-sm font-medium"
+                value={formData.description}
+                onChange={e => setFormData({...formData, description: e.target.value})}
+              />
+            </div>
+
+            <button 
+              disabled={loading}
+              className="w-full py-6 bg-black text-white rounded-[2rem] font-black uppercase tracking-widest text-sm shadow-2xl disabled:opacity-50 transition-all"
+            >
+              {loading ? "Processing..." : (editingId ? "Update Product" : "Save Product")}
+            </button>
+          </motion.form>
+        )}
+      </AnimatePresence>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
         {products.map(p => (
-          <div key={p.id} className="bg-f-gray rounded-[40px] p-6 flex flex-col relative group overflow-hidden border border-f-light shadow-sm transition-all hover:shadow-xl">
-             <div className="aspect-square rounded-[32px] overflow-hidden mb-5 bg-white p-3 shadow-inner">
-                <img src={p.image} className="w-full h-full object-contain" alt="" />
+          <motion.div 
+            layout
+            key={p.id} 
+            className="bg-white rounded-[2.5rem] p-5 flex flex-col relative group border border-zinc-100 shadow-sm transition-all hover:shadow-2xl"
+          >
+             <div className="aspect-square rounded-[2rem] overflow-hidden mb-5 bg-zinc-50 p-4 shadow-inner flex items-center justify-center">
+                <img src={p.image} className="w-full h-full object-contain rounded-[1.5rem]" alt="" />
              </div>
-             <h4 className="font-bold text-xs truncate mb-2 px-1">{p.name}</h4>
-             <p className="text-[10px] font-bold text-black opacity-40 uppercase tracking-tighter px-1">৳{p.price}</p>
+             <div className="px-1">
+                <h4 className="font-bold text-xs truncate mb-1.5">{p.name}</h4>
+                <div className="flex justify-between items-center">
+                   <p className="text-sm font-black text-zinc-900">৳{p.price}</p>
+                   <p className="text-[10px] font-bold text-zinc-300 uppercase">Qty: {p.stock}</p>
+                </div>
+             </div>
              
-             <div className="absolute inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center space-x-5 opacity-0 group-hover:opacity-100 transition-all">
-                <button onClick={() => handleEdit(p)} className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-black hover:scale-110 active:scale-90 transition-transform">
-                   <i className="fas fa-pen-nib text-sm"></i>
+             <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center space-y-4 opacity-0 group-hover:opacity-100 transition-all rounded-[2.5rem]">
+                <button onClick={() => handleEdit(p)} className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-black hover:scale-110 active:scale-90 transition-all shadow-xl">
+                   <i className="fas fa-pen"></i>
                 </button>
-                <button onClick={() => handleDelete(p.id)} className="w-12 h-12 bg-red-500 rounded-2xl flex items-center justify-center text-white hover:scale-110 active:scale-90 transition-transform shadow-lg shadow-red-500/30">
-                   <i className="fas fa-trash-alt text-sm"></i>
+                <button onClick={() => handleDelete(p.id)} className="w-14 h-14 bg-red-500 rounded-full flex items-center justify-center text-white hover:scale-110 active:scale-90 transition-all shadow-xl">
+                   <i className="fas fa-trash"></i>
                 </button>
              </div>
-          </div>
+          </motion.div>
         ))}
+        {products.length === 0 && (
+           <div className="col-span-full py-40 text-center text-zinc-300 font-black uppercase tracking-[0.4em]">Store inventory empty</div>
+        )}
       </div>
     </div>
   );
