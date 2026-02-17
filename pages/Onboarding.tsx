@@ -1,22 +1,23 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const slides = [
   {
     image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=500',
-    title: 'The Gadget Hub That Empowers Your Tech Life',
-    desc: 'Discover premium mobile accessories, cutting-edge gadgets, and exclusive audio gear.'
+    title: 'Discover Premium Tech',
+    desc: 'Explore our curated collection of high-quality mobile accessories and gadgets.'
   },
   {
     image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=500',
-    title: 'Seamless Shopping for Modern Tech',
-    desc: 'Browse, compare, and order your favorite tech essentials with a single tap.'
+    title: 'Secure Shopping',
+    desc: 'Browse, compare, and order your essentials with a fast and secure experience.'
   },
   {
     image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=500',
-    title: 'Swift and Secure Express Delivery',
-    desc: 'Fast shipping across Bangladesh. Get your gadgets delivered safely to your doorstep.'
+    title: 'Fast Nationwide Delivery',
+    desc: 'Reliable shipping across Bangladesh. Get your gadgets delivered to your doorstep.'
   }
 ];
 
@@ -39,36 +40,48 @@ const Onboarding: React.FC<{ onFinish: () => void }> = ({ onFinish }) => {
   };
 
   return (
-    <div className="h-screen flex flex-col p-8 animate-fade-in bg-white max-w-md mx-auto">
-      <div className="flex justify-end">
-        <button onClick={handleFinish} className="text-sm font-bold uppercase tracking-widest text-black opacity-40 hover:opacity-100 transition-opacity">Skip</button>
+    <div className="h-screen flex flex-col p-8 bg-white max-w-md mx-auto">
+      <div className="flex justify-end mb-6">
+        <button onClick={handleFinish} className="text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-black transition-colors">Skip</button>
       </div>
       
-      <div className="flex-1 flex flex-col items-center justify-center text-center">
-        <div className="w-full aspect-[4/5] bg-f-gray rounded-[48px] mb-10 overflow-hidden relative shadow-2xl shadow-black/5">
-          <img src={slides[current].image} className="w-full h-full object-cover" alt="" />
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-6 bg-black/10 backdrop-blur rounded-full"></div>
-        </div>
-        
-        <h1 className="text-2xl font-bold mb-4 leading-tight tracking-tight px-2">{slides[current].title}</h1>
-        <p className="text-f-gray text-xs leading-relaxed mb-12 px-6">{slides[current].desc}</p>
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key={current}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full flex flex-col items-center"
+          >
+            <div className="w-full aspect-[4/5] bg-zinc-50 rounded-[48px] mb-12 overflow-hidden shadow-2xl shadow-zinc-100">
+              <img src={slides[current].image} className="w-full h-full object-cover" alt="" />
+            </div>
+            
+            <h1 className="text-3xl font-black text-center mb-4 tracking-tighter leading-none">{slides[current].title}</h1>
+            <p className="text-zinc-500 text-sm text-center leading-relaxed mb-10 px-6 font-medium">{slides[current].desc}</p>
+          </motion.div>
+        </AnimatePresence>
         
         <div className="flex space-x-2 mb-10">
           {slides.map((_, i) => (
-            <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === current ? 'w-8 bg-black' : 'w-2 bg-gray-200'}`}></div>
+            <div key={i} className={`h-1.5 rounded-full transition-all duration-500 ${i === current ? 'w-8 bg-black' : 'w-2 bg-zinc-200'}`}></div>
           ))}
         </div>
       </div>
 
-      <button onClick={next} className="btn-primary w-full shadow-2xl shadow-black/10">
-        {current === slides.length - 1 ? "Get Started" : "Continue"}
-      </button>
-      
-      {current === 0 && (
-        <p className="mt-6 text-center text-[10px] font-bold uppercase tracking-widest text-f-gray">
-          Already a member? <button onClick={() => navigate('/signin')} className="text-black underline">Sign In</button>
-        </p>
-      )}
+      <div className="space-y-4 w-full">
+        <button onClick={next} className="btn-primary w-full shadow-2xl shadow-black/10 py-5 text-sm uppercase tracking-widest">
+          {current === slides.length - 1 ? "Start Shopping" : "Continue"}
+        </button>
+        
+        {current === 0 && (
+          <p className="text-center text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+            Already a member? <button onClick={() => navigate('/signin')} className="text-black underline">Sign In</button>
+          </p>
+        )}
+      </div>
     </div>
   );
 };

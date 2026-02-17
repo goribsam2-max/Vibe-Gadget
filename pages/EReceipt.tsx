@@ -14,14 +14,13 @@ const EReceipt: React.FC = () => {
   useEffect(() => {
     if (!id) return;
     
-    // Use onSnapshot for real-time status updates
     const unsubscribe = onSnapshot(doc(db, 'orders', id), (docSnap) => {
       if (docSnap.exists()) {
         setOrder({ id: docSnap.id, ...docSnap.data() } as Order);
       }
       setLoading(false);
     }, (error) => {
-      console.error("Receipt sync error:", error);
+      console.error("Receipt error:", error);
       setLoading(false);
     });
 
@@ -40,8 +39,8 @@ const EReceipt: React.FC = () => {
 
   if (!order) return (
     <div className="h-screen flex flex-col items-center justify-center p-10 text-center">
-       <p className="font-bold mb-4">Receipt data not found.</p>
-       <button onClick={() => navigate('/')} className="btn-primary w-full">Return Home</button>
+       <p className="font-bold mb-4">Invoice not found.</p>
+       <button onClick={() => navigate('/')} className="btn-primary w-full px-10">Return Home</button>
     </div>
   );
 
@@ -49,143 +48,115 @@ const EReceipt: React.FC = () => {
 
   return (
     <div className="p-6 pb-24 animate-fade-in min-h-screen bg-white max-w-md mx-auto print:p-0">
-       <div className="flex items-center space-x-4 mb-8 print:hidden">
-          <button onClick={() => navigate(-1)} className="p-3 bg-f-gray rounded-2xl active:scale-90 transition-transform">
-             <i className="fas fa-chevron-left text-sm"></i>
+       <div className="flex items-center space-x-6 mb-10 print:hidden">
+          <button onClick={() => navigate(-1)} className="p-3 bg-zinc-50 rounded-2xl active:scale-90 transition-transform border border-zinc-100 shadow-sm">
+             <i className="fas fa-arrow-left text-sm"></i>
           </button>
-          <h1 className="text-xl font-bold tracking-tight">Order Receipt</h1>
+          <h1 className="text-xl font-black tracking-tight">E-Receipt</h1>
        </div>
 
-       {/* Receipt Content Wrapper */}
-       <div id="receipt-area" className="bg-f-gray rounded-[40px] border border-f-light p-8 shadow-sm flex flex-col relative overflow-hidden print:border-0 print:bg-white print:shadow-none print:rounded-none">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-black/5 rounded-full translate-x-16 -translate-y-16 print:hidden"></div>
-          
-          {/* Header */}
+       <div id="receipt-area" className="bg-zinc-50 rounded-[3rem] border border-zinc-100 p-8 shadow-sm flex flex-col relative overflow-hidden print:border-0 print:bg-white print:shadow-none print:rounded-none">
           <div className="mb-10 w-full flex flex-col items-center">
-             <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mb-6 shadow-xl print:shadow-none">
-                <i className="fas fa-bolt text-white text-2xl"></i>
+             <div className="w-14 h-14 bg-black rounded-2xl flex items-center justify-center mb-6 shadow-xl">
+                <i className="fas fa-shopping-bag text-white text-xl"></i>
              </div>
-             <h2 className="text-xl font-bold tracking-tight mb-1">VibeGadget Invoice</h2>
-             <p className="text-[9px] text-f-gray font-bold tracking-[3px] uppercase opacity-60">Verified Purchase</p>
+             <h2 className="text-2xl font-black tracking-tight mb-1 text-zinc-900">VibeGadget</h2>
+             <p className="text-[9px] text-zinc-400 font-bold tracking-[0.2em] uppercase">Official Invoice</p>
           </div>
 
-          {/* Customer Info (A-Z Section) */}
-          <div className="w-full space-y-6 mb-8 border-b border-white/50 pb-8 print:border-gray-100">
+          <div className="w-full space-y-6 mb-8 border-b border-zinc-200 pb-8">
              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                   <p className="text-[9px] text-f-gray font-bold uppercase tracking-widest">Customer Info</p>
-                   <p className="text-xs font-bold">{order.customerName}</p>
-                   <p className="text-[10px] text-gray-500 font-bold leading-tight mt-1">
-                      <code className="bg-white px-1.5 py-0.5 rounded border border-black/5 print:border-0">{order.contactNumber}</code>
-                   </p>
+                   <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-widest">Customer</p>
+                   <p className="text-xs font-bold text-zinc-900">{order.customerName}</p>
+                   <p className="text-[10px] text-zinc-500 font-bold mt-1">{order.contactNumber}</p>
                 </div>
                 <div className="text-right space-y-1">
-                   <p className="text-[9px] text-f-gray font-bold uppercase tracking-widest">Order ID</p>
-                   <p className="text-[10px] font-mono font-bold uppercase bg-black text-white px-2 py-1 rounded inline-block">#{order.id.slice(0, 8)}</p>
-                   <p className="text-[10px] text-gray-500 font-medium mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
+                   <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-widest">Order ID</p>
+                   <p className="text-[10px] font-mono font-black uppercase bg-white border border-zinc-100 px-2 py-1 rounded">#{order.id.slice(0, 8).toUpperCase()}</p>
+                   <p className="text-[10px] text-zinc-500 font-bold mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
                 </div>
              </div>
              <div>
-                <p className="text-[9px] text-f-gray font-bold uppercase tracking-widest mb-1">Shipping Address</p>
-                <p className="text-[10px] text-gray-500 font-medium italic leading-relaxed">{order.shippingAddress}</p>
+                <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-widest mb-1">Shipping To</p>
+                <p className="text-[10px] text-zinc-500 font-medium leading-relaxed">{order.shippingAddress}</p>
              </div>
           </div>
 
-          {/* Product Manifest */}
-          <div className="w-full space-y-3 mb-8">
-             <p className="text-[9px] text-f-gray font-bold uppercase tracking-widest mb-2">Order Items</p>
+          <div className="w-full space-y-4 mb-8">
+             <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-widest mb-1">Order Summary</p>
              {order.items.map((item, idx) => (
-                <div key={idx} className="flex items-center space-x-4 bg-white/60 p-4 rounded-3xl border border-white/40 print:bg-white print:border-gray-50">
-                   <div className="w-10 h-10 bg-white rounded-xl overflow-hidden p-1 shrink-0 print:hidden">
+                <div key={idx} className="flex items-center space-x-4 bg-white p-4 rounded-2xl border border-zinc-100 shadow-sm">
+                   <div className="w-10 h-10 bg-zinc-50 rounded-xl overflow-hidden p-1 shrink-0">
                       <img src={item.image} className="w-full h-full object-contain" alt="" />
                    </div>
                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-xs truncate">{item.name}</h4>
-                      <p className="text-[9px] text-f-gray font-bold uppercase">Qty: {item.quantity} × ৳{item.priceAtPurchase}</p>
+                      <h4 className="font-bold text-[11px] truncate">{item.name}</h4>
+                      <p className="text-[9px] text-zinc-400 font-bold">Qty: {item.quantity} × ৳{item.priceAtPurchase}</p>
                    </div>
-                   <p className="font-bold text-xs shrink-0">৳{item.priceAtPurchase * item.quantity}</p>
+                   <p className="font-black text-xs shrink-0">৳{item.priceAtPurchase * item.quantity}</p>
                 </div>
              ))}
           </div>
 
-          {/* Payment Configuration (A-Z Section) */}
-          <div className="w-full bg-white/40 p-5 rounded-3xl border border-white/60 mb-8 print:bg-white print:border-gray-50">
-             <p className="text-[9px] text-f-gray font-bold uppercase tracking-widest mb-4">Payment Config</p>
-             <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                   <span className="text-[10px] font-bold text-f-gray uppercase">Method</span>
-                   <span className="text-[10px] font-bold">{order.paymentMethod}</span>
+          <div className="w-full bg-white p-5 rounded-2xl border border-zinc-100 mb-8 shadow-sm">
+             <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-widest mb-3">Payment Info</p>
+             <div className="space-y-2">
+                <div className="flex justify-between items-center text-[10px]">
+                   <span className="font-bold text-zinc-400">Method</span>
+                   <span className="font-bold text-zinc-900">{order.paymentMethod}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                   <span className="text-[10px] font-bold text-f-gray uppercase">Payment Type</span>
-                   <span className="text-[10px] font-bold">{order.paymentOption || 'Cash on Delivery'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                   <span className="text-[10px] font-bold text-f-gray uppercase">TrxID</span>
-                   <code className="text-[10px] font-mono font-bold text-black uppercase">{order.transactionId || 'N/A'}</code>
+                <div className="flex justify-between items-center text-[10px]">
+                   <span className="font-bold text-zinc-400">Transaction ID</span>
+                   <span className="font-mono font-bold text-black uppercase">{order.transactionId || 'N/A'}</span>
                 </div>
              </div>
           </div>
 
-          {/* Financial Summary */}
-          <div className="w-full space-y-3 mb-8 border-t border-white/50 pt-6 print:border-gray-100">
-             <div className="flex justify-between text-[10px] font-bold text-f-gray uppercase">
-                <span>Items Sub-Total</span>
-                <span className="text-black">৳{subTotal}</span>
+          <div className="w-full space-y-3 mb-6 border-t border-zinc-200 pt-6">
+             <div className="flex justify-between text-[10px] font-bold text-zinc-400 uppercase">
+                <span>Sub-Total</span>
+                <span className="text-zinc-900">৳{subTotal}</span>
              </div>
-             <div className="flex justify-between text-[10px] font-bold text-f-gray uppercase">
+             <div className="flex justify-between text-[10px] font-bold text-zinc-400 uppercase">
                 <span>Delivery Charge</span>
-                <span className="text-black">৳150</span>
+                <span className="text-zinc-900">৳150</span>
              </div>
-             <div className="flex justify-between text-lg font-bold pt-2 border-t border-white/20 print:border-gray-50">
-                <span>Grand Total</span>
+             <div className="flex justify-between text-3xl font-black pt-4 border-t border-zinc-100 tracking-tighter text-zinc-900">
+                <span>Total</span>
                 <span>৳{order.total}</span>
              </div>
           </div>
 
-          {/* Status & Logs */}
-          <div className="w-full text-center space-y-4">
-             <div className={`py-3 rounded-2xl border font-bold text-[10px] uppercase tracking-widest transition-all duration-500
-                ${order.status === 'Delivered' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-black text-white border-black'}`}>
-                Order Status: {order.status}
-             </div>
-             <div className="flex justify-center items-center space-x-2 opacity-40">
-                <i className="fas fa-shipping-fast text-[8px]"></i>
-                <p className="text-[8px] font-bold uppercase tracking-[0.2em]">Partner: Steadfast Courier</p>
-             </div>
+          <div className="w-full text-center">
+             <p className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-300">Thank you for shopping at VibeGadget</p>
           </div>
        </div>
 
-       {/* Print/Download Button */}
        <button 
           onClick={handleDownload}
-          className="btn-primary w-full mt-10 shadow-2xl shadow-black/10 flex items-center justify-center space-x-3 text-xs uppercase tracking-widest print:hidden"
+          className="w-full mt-10 py-5 bg-black text-white rounded-2xl flex items-center justify-center space-x-3 text-[10px] font-black uppercase tracking-widest print:hidden shadow-lg active:scale-[0.98] transition-all"
        >
-          <i className="fas fa-file-pdf"></i>
-          <span>Download as pdf</span>
+          <i className="fas fa-print"></i>
+          <span>Download Invoice</span>
        </button>
 
-       {/* Print-only CSS */}
        <style>
           {`
             @media print {
-              body * {
-                visibility: hidden;
-              }
-              #receipt-area, #receipt-area * {
-                visibility: visible;
-              }
+              body * { visibility: hidden; }
+              #receipt-area, #receipt-area * { visibility: visible; }
               #receipt-area {
-                position: absolute;
+                position: fixed;
                 left: 0;
                 top: 0;
                 width: 100%;
                 margin: 0;
-                padding: 20px;
+                padding: 40px;
+                background: white !important;
+                border: 1px solid #eee !important;
               }
-              .print\\:hidden {
-                display: none !important;
-              }
+              .print\\:hidden { display: none !important; }
             }
           `}
        </style>

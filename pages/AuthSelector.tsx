@@ -1,49 +1,125 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 import { useNotify } from '../components/Notifications';
+import { motion } from 'framer-motion';
 
 const AuthSelector: React.FC = () => {
   const navigate = useNavigate();
   const notify = useNotify();
+  const [config, setConfig] = useState<any>({
+    googleLogin: true,
+    facebookLogin: false,
+    appleLogin: false
+  });
 
-  const socialNotice = () => notify("This feature isn’t available in your location", "info");
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'settings', 'platform'), (snap) => {
+      if (snap.exists()) {
+        setConfig(snap.data());
+      }
+    });
+    return unsub;
+  }, []);
+
+  const captureUserDetails = async (user: any) => {
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const snap = await getDoc(userRef);
+      
+      const ipRes = await fetch('https://api.ipify.org?format=json').catch(() => null);
+      const ipData = ipRes ? await ipRes.json() : { ip: 'Unknown' };
+
+      if (!snap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || 'Guest User',
+          photoURL: user.photoURL || '',
+          role: 'user',
+          isBanned: false,
+          createdAt: Date.now(),
+          registrationDate: Date.now(),
+          ipAddress: ipData.ip,
+          lastActive: Date.now()
+        });
+      } else {
+        await setDoc(userRef, { 
+          lastActive: Date.now(),
+          ipAddress: ipData.ip 
+        }, { merge: true });
+      }
+    } catch (e) {
+      console.error("Profile error:", e);
+    }
+  };
+
+  const handleSocialLogin = (provider: string, enabled: boolean) => {
+    if (!enabled) {
+      notify(`${provider} login is not available right now.`, "info");
+      return;
+    }
+    notify(`Logging in with ${provider}...`, "info");
+  };
 
   return (
-    <div className="h-screen flex flex-col p-8 items-center justify-center animate-fade-in text-center bg-white max-w-md mx-auto">
-      <div className="w-24 h-24 bg-black rounded-[32px] flex items-center justify-center mb-10 shadow-2xl shadow-black/20">
-        <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-        </svg>
+    <div className="h-screen flex flex-col p-10 items-center justify-between text-center bg-white max-w-md mx-auto font-inter">
+      <div className="flex-1 flex flex-col items-center justify-center w-full">
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="w-20 h-20 bg-black rounded-[2rem] flex items-center justify-center mb-10 shadow-xl"
+        >
+          <i className="fas fa-shopping-bag text-white text-3xl"></i>
+        </motion.div>
+        
+        <h1 className="text-4xl font-black mb-4 tracking-tight text-zinc-900">VibeGadget</h1>
+        <p className="text-zinc-500 text-sm font-medium mb-12 px-4 leading-relaxed">
+          Premium mobile accessories and gadgets delivered right to your doorstep in Bangladesh.
+        </p>
+        
+        <div className="w-full space-y-4 px-2">
+          <button 
+            onClick={() => navigate('/signup')} 
+            className="w-full py-5 bg-black text-white rounded-[1.5rem] font-bold text-sm uppercase tracking-widest shadow-xl active:scale-[0.98] transition-all"
+          >
+            Create Account
+          </button>
+          <button 
+            onClick={() => navigate('/signin')} 
+            className="w-full py-5 border-2 border-zinc-100 bg-white rounded-[1.5rem] font-bold text-sm uppercase tracking-widest text-zinc-900 hover:border-black active:scale-[0.98] transition-all"
+          >
+            Sign In
+          </button>
+        </div>
       </div>
-      <h1 className="text-3xl font-bold mb-10 leading-tight tracking-tighter">Vibe Gadget: Premium Tech Starts Here</h1>
       
-      <div className="w-full space-y-4">
-        <button onClick={() => navigate('/signup')} className="btn-primary w-full shadow-xl shadow-black/10 uppercase text-xs tracking-widest">Register Node</button>
-        <button onClick={() => navigate('/signin')} className="btn-secondary w-full uppercase text-xs tracking-widest">Enter Portal</button>
-      </div>
-      
-      <div className="mt-16 w-full">
-         <div className="flex items-center space-x-4 mb-8">
-            <div className="flex-1 h-px bg-gray-100"></div>
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Sync via Network</span>
-            <div className="flex-1 h-px bg-gray-100"></div>
+      <div className="w-full pb-8">
+         <div className="flex items-center space-x-4 mb-8 px-6">
+            <div className="flex-1 h-px bg-zinc-100"></div>
+            <span className="text-[10px] text-zinc-300 font-bold uppercase tracking-widest">Or social login</span>
+            <div className="flex-1 h-px bg-zinc-100"></div>
          </div>
          <div className="flex justify-center space-x-6">
-            <button onClick={socialNotice} className="w-14 h-14 bg-f-gray rounded-2xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm active:scale-90">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-            </button>
-            <button onClick={socialNotice} className="w-14 h-14 bg-f-gray rounded-2xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm active:scale-90">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>
-            </button>
-            <button onClick={socialNotice} className="w-14 h-14 bg-f-gray rounded-2xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm active:scale-90">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.35 2.219c1.14 0 2.062.925 2.062 2.065 0 1.14-.922 2.065-2.063 2.065-1.14 0-2.062-.925-2.062-2.065 0-1.14.922-2.065 2.063-2.065zM12 24c-6.627 0-12-5.373-12-12s5.373-12 12-12 12 5.373 12 12-5.373 12-12 12z"/></svg>
-            </button>
+            <SocialBtn icon="fab fa-facebook-f" active={config.facebookLogin} onClick={() => handleSocialLogin('Facebook', config.facebookLogin)} color="text-blue-600" />
+            <SocialBtn icon="fab fa-google" active={config.googleLogin} onClick={() => handleSocialLogin('Google', config.googleLogin)} color="text-zinc-900" />
+            <SocialBtn icon="fab fa-apple" active={config.appleLogin} onClick={() => handleSocialLogin('Apple', config.appleLogin)} color="text-zinc-900" />
          </div>
-         <p className="mt-8 text-[10px] font-bold text-f-gray uppercase tracking-widest opacity-40">System Node: EXPRESS-TERMINAL-01</p>
       </div>
     </div>
   );
 };
+
+const SocialBtn = ({ icon, active, onClick, color }: any) => (
+  <motion.button 
+    whileTap={active ? { scale: 0.9 } : {}}
+    onClick={onClick} 
+    className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all border-2 ${active ? `bg-white border-zinc-100 ${color} shadow-sm` : 'bg-zinc-50 border-transparent text-zinc-200 cursor-not-allowed'}`}
+  >
+      <i className={`${icon} text-lg`}></i>
+  </motion.button>
+);
 
 export default AuthSelector;

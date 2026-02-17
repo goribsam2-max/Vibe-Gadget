@@ -1,142 +1,129 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Order, OrderStatus } from '../types';
-import { getSteadfastStatus } from '../services/steadfast';
+import { motion } from 'framer-motion';
+
+const StatusIcon = ({ status }: { status: OrderStatus }) => {
+  const base = "w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ";
+  switch (status) {
+    case OrderStatus.HOLD:
+      return (
+        <div className={base + "bg-yellow-100 text-yellow-600"}>
+          <i className="fas fa-pause text-xl"></i>
+        </div>
+      );
+    case OrderStatus.PROCESSING:
+      return (
+        <div className={base + "bg-blue-100 text-blue-600"}>
+          <i className="fas fa-sync-alt text-xl animate-spin"></i>
+        </div>
+      );
+    case OrderStatus.PACKAGING:
+      return (
+        <div className={base + "bg-purple-100 text-purple-600"}>
+          <i className="fas fa-box text-xl"></i>
+        </div>
+      );
+    case OrderStatus.SHIPPED:
+      return (
+        <div className={base + "bg-orange-100 text-orange-600"}>
+          <i className="fas fa-truck-moving text-xl"></i>
+        </div>
+      );
+    case OrderStatus.DELIVERED:
+      return (
+        <div className={base + "bg-green-100 text-green-600"}>
+          <i className="fas fa-check text-xl"></i>
+        </div>
+      );
+    default:
+      return (
+        <div className={base + "bg-zinc-100 text-zinc-400"}>
+          <i className="fas fa-box-open text-xl"></i>
+        </div>
+      );
+  }
+};
 
 const TrackOrder: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [sfStatus, setSfStatus] = useState<string>('');
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!id) return;
-      try {
-        const snap = await getDoc(doc(db, 'orders', id));
-        if (snap.exists()) {
-          const orderData = { id: snap.id, ...snap.data() } as Order;
-          setOrder(orderData);
-          
-          if (orderData.steadfastId) {
-            const result = await getSteadfastStatus(orderData.steadfastId);
-            // documentation says response format: { status: 200, delivery_status: "..." }
-            if (result && result.status === 200 && result.delivery_status) {
-                const currentStatus = result.delivery_status;
-                setSfStatus(currentStatus);
-                
-                // If local status differs from courier status, sync it
-                if (currentStatus !== orderData.status) {
-                    await updateDoc(doc(db, 'orders', id), { 
-                        status: currentStatus,
-                        steadfastStatus: currentStatus 
-                    });
-                    setOrder(prev => prev ? { ...prev, status: currentStatus } : null);
-                }
-            }
-          }
-        }
-      } catch (e) {
-        console.error("Error tracking order", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    if (!id) return;
+    const unsubscribe = onSnapshot(doc(db, 'orders', id), (snap) => {
+      if (snap.exists()) setOrder({ id: snap.id, ...snap.data() } as Order);
+      setLoading(false);
+    });
+    return unsubscribe;
   }, [id]);
 
   if (loading) return (
     <div className="h-screen flex items-center justify-center bg-white">
-       <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
     </div>
   );
 
   if (!order) return (
     <div className="h-screen flex flex-col items-center justify-center p-10 text-center">
-       <p className="font-bold mb-4">No tracking data found.</p>
-       <button onClick={() => navigate('/')} className="btn-primary w-full">Go Back Home</button>
+      <div className="w-20 h-20 bg-zinc-50 rounded-2xl flex items-center justify-center mb-6 text-2xl border border-zinc-100">?</div>
+      <p className="font-bold text-sm uppercase tracking-widest mb-10 text-zinc-400">Order not found</p>
+      <button onClick={() => navigate('/')} className="btn-primary w-full px-10">Return to Store</button>
     </div>
   );
 
-  const statusLower = order.status.toLowerCase();
-
-  // Unified visual steps based on Packzy delivery statuses
-  const steps = [
-    { label: 'Order Received', active: true },
-    { label: 'Processing', active: ['in_review', 'shipped', 'delivered', 'partial_delivered', 'delivered_approval_pending'].includes(statusLower) },
-    { label: 'Handed Over', active: ['shipped', 'delivered', 'partial_delivered', 'delivered_approval_pending'].includes(statusLower) },
-    { label: 'Delivered', active: ['delivered', 'partial_delivered', 'delivered_approval_pending'].includes(statusLower) }
-  ];
-
   return (
-    <div className="p-6 pb-24 animate-fade-in min-h-screen bg-white max-w-md mx-auto">
-       <div className="flex items-center space-x-4 mb-8">
-          <button onClick={() => navigate(-1)} className="p-3 bg-f-gray rounded-2xl">
-             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+    <div className="p-6 md:p-12 pb-48 min-h-screen bg-white max-w-lg mx-auto animate-fade-in">
+       <div className="flex items-center space-x-6 mb-12">
+          <button onClick={() => navigate(-1)} className="p-3.5 bg-zinc-50 rounded-2xl border border-zinc-100 shadow-sm active:scale-90 transition-all">
+             <i className="fas fa-arrow-left text-xs"></i>
           </button>
-          <h1 className="text-xl font-bold tracking-tight">Tracking Package</h1>
+          <h1 className="text-2xl font-black tracking-tight uppercase text-zinc-900">Track Order</h1>
        </div>
 
-       <div className="space-y-4 mb-10">
-          {order.items.map((item, idx) => (
-            <div key={idx} className="bg-f-gray p-4 rounded-[28px] flex items-center space-x-4 border border-f-light">
-              <div className="w-14 h-14 bg-white rounded-xl overflow-hidden p-1 shadow-sm shrink-0">
-                 <img src={item.image} className="w-full h-full object-contain" alt="" />
-              </div>
-              <div className="flex-1 min-w-0">
-                 <h4 className="font-bold text-xs truncate">{item.name}</h4>
-                 <p className="text-[10px] text-f-gray font-bold uppercase tracking-wider">Qty: {item.quantity} | ৳{item.priceAtPurchase}</p>
-              </div>
-            </div>
-          ))}
-       </div>
-
-       <div className="space-y-8 mb-10 pl-8 border-l-2 border-f-gray relative ml-4 mt-6">
-          {steps.map((step, i) => (
-             <div key={i} className="relative">
-                <div className={`absolute -left-[41px] top-0 w-5 h-5 rounded-full border-4 border-white z-10 transition-colors duration-500 ${step.active ? 'bg-black shadow-lg shadow-black/20' : 'bg-gray-200'}`}></div>
-                <div className="flex justify-between items-start">
-                   <div>
-                      <h4 className={`font-bold text-sm mb-1 ${step.active ? 'text-black' : 'text-gray-300 opacity-60'}`}>{step.label}</h4>
-                      <p className="text-[9px] text-f-gray font-bold uppercase tracking-widest">Real-time Sync</p>
-                   </div>
-                   {step.active && (
-                      <div className="bg-green-50 text-green-600 p-1 rounded-lg">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                      </div>
-                   )}
-                </div>
-             </div>
-          ))}
-       </div>
-
-       <div className="bg-f-gray p-6 rounded-[32px] border border-f-light">
-          <div className="flex justify-between items-center mb-6">
-             <h4 className="font-bold text-[10px] text-f-gray uppercase tracking-widest">Courier Status</h4>
-             <div className="flex items-center space-x-1 px-3 py-1 bg-white rounded-xl">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
-                <span className="text-[9px] font-bold uppercase tracking-tighter">Packzy Live</span>
-             </div>
-          </div>
-          <div className="space-y-4">
-             <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold text-f-gray uppercase">Tracking ID</span>
-                <span className="text-xs font-mono font-bold tracking-tight">{order.steadfastId || 'Processing...'}</span>
-             </div>
-             <div className="flex justify-between items-center pt-4 border-t border-white/50">
-                <span className="text-[10px] font-bold text-f-gray uppercase">Current Stage</span>
-                <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-xl uppercase tracking-tighter">
-                    {(sfStatus || order.status).replace(/_/g, ' ')}
-                </span>
-             </div>
+       <div className="bg-zinc-50 rounded-[2.5rem] p-10 flex flex-col items-center text-center border border-zinc-100 mb-12 shadow-sm">
+          <div className="mb-6"><StatusIcon status={order.status} /></div>
+          <h2 className="text-xl font-black mb-2 tracking-tight uppercase text-zinc-900">{order.status}</h2>
+          <div className="flex items-center space-x-3 bg-white px-5 py-2.5 rounded-2xl border border-zinc-100 mt-4">
+             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Tracking ID:</span>
+             <span className="text-[11px] font-mono font-black text-zinc-900">{order.trackingId || 'Preparing'}</span>
           </div>
        </div>
+
+       <div className="space-y-6">
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-300 px-2">Delivery Progress</h3>
+          <div className="bg-white rounded-[2rem] p-8 border border-zinc-100 space-y-10 shadow-sm">
+             <Step label="Order Placed" sub="We received your order." active />
+             <Step label="Quality Check" sub="Testing your items before packing." active={order.status !== OrderStatus.PENDING && order.status !== OrderStatus.CANCELLED} />
+             <Step label="Order Packed" sub="Your items are ready to ship." active={[OrderStatus.PACKAGING, OrderStatus.SHIPPED, OrderStatus.ON_THE_WAY, OrderStatus.DELIVERED].includes(order.status)} />
+             <Step label="Handed to Courier" sub="Sent via Steadfast Courier." active={[OrderStatus.SHIPPED, OrderStatus.ON_THE_WAY, OrderStatus.DELIVERED].includes(order.status)} />
+             <Step label="Delivered" sub="Product delivered to your address." active={order.status === OrderStatus.DELIVERED} />
+          </div>
+       </div>
+       
+       <button onClick={() => navigate(`/e-receipt/${order.id}`)} className="w-full mt-10 py-5 bg-zinc-50 border border-zinc-100 text-zinc-900 rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-all active:scale-[0.98]">
+          View Invoice
+       </button>
     </div>
   );
 };
+
+const Step = ({ label, sub, active }: any) => (
+  <div className="flex space-x-6 relative">
+    <div className="flex flex-col items-center">
+       <div className={`w-3.5 h-3.5 rounded-full border-4 transition-all duration-500 ${active ? 'bg-black border-zinc-50' : 'bg-zinc-100 border-white'}`}></div>
+       <div className={`w-0.5 h-full transition-colors duration-500 ${active ? 'bg-zinc-900/10' : 'bg-zinc-50'}`}></div>
+    </div>
+    <div className="-translate-y-1 flex-1">
+       <h4 className={`text-[11px] font-bold uppercase tracking-widest ${active ? 'text-zinc-900' : 'text-zinc-300'}`}>{label}</h4>
+       <p className="text-[10px] font-medium text-zinc-400 mt-1 leading-relaxed">{sub}</p>
+    </div>
+  </div>
+);
 
 export default TrackOrder;

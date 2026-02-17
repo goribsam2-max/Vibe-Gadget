@@ -18,7 +18,7 @@ const HelpCenter: React.FC = () => {
   const contactOptions = [
     { label: 'Customer Hotline', svg: <path d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />, action: () => window.open('tel:01747708843') },
     { label: 'WhatsApp Support', svg: <path d="M2 12c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c-1.707 0-3.305-.426-4.704-1.175L2 22l1.175-5.296A9.963 9.963 0 012 12z" />, action: () => window.open('https://wa.me/8801747708843') },
-    { label: 'Vibe Facebook Page', svg: <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3V2z" />, action: () => window.open('https://www.facebook.com/share/1FUaBeHMjD/?mibextid=wwXIfr') }
+    { label: 'Vibe Facebook Page', svg: <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3V2z" />, action: () => window.open('https://facebook.com') }
   ];
 
   return (
